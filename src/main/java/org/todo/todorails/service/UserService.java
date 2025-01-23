@@ -1,75 +1,105 @@
 package org.todo.todorails.service;
 
+
+import jakarta.validation.constraints.Email;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.security.core.userdetails.UserDetails;
-import org.springframework.security.core.userdetails.UserDetailsService;
-import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.todo.todorails.model.User;
-import org.todo.todorails.repository.TaskRepository;
+import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.NotNull;
 import org.todo.todorails.repository.UserRepository;
 
-@Service
-public class UserService implements UserDetailsService {
+import java.util.List;
 
+@Service
+public class UserService {
     private final UserRepository userRepository;
     private final BCryptPasswordEncoder passwordEncoder;
 
     @Autowired
-    public UserService(UserRepository userRepository, TaskRepository taskRepository) {
+    public UserService(UserRepository userRepository, BCryptPasswordEncoder passwordEncoder) {
         this.userRepository = userRepository;
-        this.passwordEncoder = new BCryptPasswordEncoder();
+        this.passwordEncoder = passwordEncoder;
     }
 
+    private static final Logger logger = LoggerFactory.getLogger(UserService.class);
 
-    public User registerUser(User user) throws Exception {
 
-        // Check if username already exists
-        /** TODO 8 (b): uncomment the method below checking for testing if a username exists **/
-
-        if (userRepository.existsByUsername(user.getUsername())) {
-            throw new Exception("Username already exists");
+    // add a user
+    public User addUser(@NotNull(message = "User cannot be null") User user) {
+        if (userRepository.findByUsername(user.getUsername()).isPresent()) {
+            throw new RuntimeException("Username already exists");
         }
-
-
-        // Encrypt the password
+        if (userRepository.findByEmail(user.getEmail()).isPresent()) {
+            throw new RuntimeException("Email already exists");
+        }
+        String password = user.getPassword();
+        // TODO 7: enable password encoder in user service
         user.setPassword(passwordEncoder.encode(user.getPassword()));
 
-        // Set terms accepted to true
-        user.setTermsAccepted(true);
-
-        // Save the new user
         return userRepository.save(user);
     }
 
-    public User findByUsername(String username) {
-        return userRepository.findByUsername(username);
+    // get a user by username
+    public User getUserByUsername(
+            @NotNull(message = "Username cannot be null")
+            @NotBlank(message = "Username cannot be blank")
+            String username
+    ) {
+        return userRepository.findByUsername(username)
+                .orElseThrow(
+                        () -> new RuntimeException("User not found")
+                );
     }
 
-    public User findByEmail(String email) {
-        return userRepository.findByEmail(email);
+    // get a user by email
+    public User getUserByEmail(
+            @NotNull(message = "Email cannot be null")
+            @NotBlank(message = "Email cannot be blank")
+            @Email(message = "Email should be valid")
+            String email
+    ) {
+        return userRepository.findByEmail(email)
+                .orElseThrow(
+                        () -> new RuntimeException("User not found")
+                );
     }
 
-    public void save(User user) {
-        userRepository.save(user);
+    // get a user by id
+    public User getUserById(
+            @NotNull(message = "Id cannot be null")
+            Long id
+    ) {
+        return userRepository.findById(id)
+                .orElseThrow(
+                        () -> new RuntimeException("User not found")
+                );
     }
 
-    @Override
-    public UserDetails loadUserByUsername(String username) throws UsernameNotFoundException {
-        User user = findByUsername(username);
-
-        // Check if user with username exists
-        if (user == null) {
-
-            // If username does not exist then check if email is passed
-            user = findByEmail(username);
-
-            // Check if user with email exists
-            if(user == null) {
-                throw new UsernameNotFoundException("User not found with username: " + username);
-            }
+    // update a user
+    public User updateUser(@NotNull(message = "User cannot be null") User user) {
+        if (userRepository.findByUsername(user.getUsername()).isEmpty()) {
+            throw new RuntimeException("User not found");
         }
-        return user;
+        return userRepository.save(user);
+    }
+
+    // delete a user
+    public void deleteUser(@NotNull(message = "User cannot be null") User user) {
+        if (userRepository.findByUsername(user.getUsername()).isEmpty()) {
+            throw new RuntimeException("User not found");
+        }
+        userRepository.delete(user);
+    }
+
+    public List<User> getAllUsers() {
+        if (userRepository.findAll().isEmpty()) {
+            throw new RuntimeException("No users found");
+        }
+        return userRepository.findAll();
     }
 }
+

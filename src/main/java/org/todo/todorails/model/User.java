@@ -1,84 +1,37 @@
 package org.todo.todorails.model;
 
 import jakarta.persistence.*;
-import org.springframework.security.core.GrantedAuthority;
-import org.springframework.security.core.userdetails.UserDetails;
-
-import java.util.Collection;
-import java.util.Collections;
-import java.util.List;
+import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.NotNull;
 
 @Entity
-public class User implements UserDetails {
-
+@Table(name = "users")
+public class User {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @Column(nullable = false, unique = true)
+    @Column(name = "username", unique = true, nullable = false)
     private String username;
 
-    @Column(nullable = false)
+    @Column(name = "password", nullable = false)
     private String password;
 
-    @Column(nullable = false, unique = false)
+    @Column(name = "email", unique = true, nullable = false)
     private String email;
 
-    private String highestQualification;
+    @Column(name = "roles", nullable = false)
+    private String roles;
 
-    @ElementCollection
-    private List<String> hobbies;
-
-    private Boolean termsAccepted = false;
-
-    // Overriding methods of UserDetails Interface
-
-    @Override
-    public Collection<? extends GrantedAuthority> getAuthorities() {
-        // Assuming a simple user role future provision
-        // for more complex scenarios, you may want a Role entity
-        // currently returns an empty list
-        // return authorities if roles are added
-        return Collections.emptyList();
+    public User() {
     }
 
-    @Override
-    public String getPassword() {
-        return this.password;
+    public User(String username, String password, String email, String roles) {
+        this.username = username;
+        this.password = password;
+        this.email = email;
+        this.roles = roles;
     }
-
-    @Override
-    public String getUsername() {
-        return this.username;
-    }
-
-    @Override
-    public boolean isAccountNonExpired() {
-        // Fixed values, you can have fields to represent state
-        return true;
-    }
-
-    @Override
-    public boolean isAccountNonLocked() {
-        // Fixed values, you can have fields to represent state
-        return true;
-    }
-
-    @Override
-    public boolean isCredentialsNonExpired() {
-        // Fixed values, you can have fields to represent state
-        return true;
-    }
-
-    @Override
-    public boolean isEnabled() {
-        // Fixed values, you can have fields to represent state
-        return true;
-    }
-
-
-
-    // Getters and setters
 
     public Long getId() {
         return id;
@@ -88,10 +41,17 @@ public class User implements UserDetails {
         this.id = id;
     }
 
+    public String getUsername() {
+        return username;
+    }
+
     public void setUsername(String username) {
         this.username = username;
     }
 
+    public String getPassword() {
+        return password;
+    }
 
     public void setPassword(String password) {
         this.password = password;
@@ -105,29 +65,22 @@ public class User implements UserDetails {
         this.email = email;
     }
 
-    public String getHighestQualification() {
-        return highestQualification;
+    public String getRoles() {
+        return roles;
     }
 
-    public void setHighestQualification(String highestQualification) {
-        this.highestQualification = highestQualification;
+    public void setRoles(String roles) {
+        this.roles = roles;
     }
 
-    public List<String> getHobbies() {
-        return hobbies;
+    @Override
+    public String toString() {
+        return "User{" +
+                "id=" + id +
+                ", username='" + username + '\'' +
+                ", password='" + password + '\'' +
+                ", email='" + email + '\'' +
+                ", roles='" + roles + '\'' +
+                '}';
     }
-
-    public void setHobbies(List<String> hobbies) {
-        this.hobbies = hobbies;
-    }
-
-    public Boolean getTermsAccepted() {
-        return termsAccepted;
-    }
-
-    public void setTermsAccepted(Boolean termsAccepted) {
-        this.termsAccepted = termsAccepted;
-    }
-
-
 }

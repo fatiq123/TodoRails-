@@ -1,56 +1,51 @@
 package org.todo.todorails.model;
 
 import jakarta.persistence.*;
+import jakarta.validation.constraints.FutureOrPresent;
+import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.NotNull;
 import org.springframework.format.annotation.DateTimeFormat;
 
 import java.time.LocalDate;
 
+
 @Entity
+@Table(name = "tasks")
 public class Task {
+
+    // TODO 19: Add Validation Error Messages
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    // Title of task
+    @Column(name = "title", unique = true, nullable = false)
+    @NotNull(message = "Title cannot be null")
+    @NotBlank(message = "Title cannot be blank")
     private String title;
 
-    // Description of task
+    @Column(name = "description", nullable = false)
+    @NotNull(message = "Description cannot be null")
+    @NotBlank(message = "Description cannot be blank")
     private String description;
 
-    // Priority can be "high", "medium", or "low"
-    private String priority;
-
-    // Due date for the task
-    @DateTimeFormat(pattern = "yyyy-MM-dd") // Ensure consistent date format
-    private LocalDate dueDate;
-
-    // Task type can be "official", "family", or "personal"
-    private String type;
-
-    // Date when the task was added
-    private LocalDate dateAdded;
-
-    // Flag to indicate if the task is completed
+    @Column(name = "completed", nullable = false)
     private boolean completed;
 
-    // Date when the task was marked as completed
-    private LocalDate completionDate;
-
-    // Many-to-one relationship with User (each task belongs to a user)
-    @ManyToOne
-    @JoinColumn(name = "user_id", nullable = false)
-    private User user;
-
-    // Constructors, getters, and setters
+    @Column(name = "due_date", nullable = false)
+    @FutureOrPresent(message = "Due date must be in the present or future")
+    private LocalDate dueDate;
 
     public Task() {
-        // Automatically set the creation date when a task is created
-        this.dateAdded = LocalDate.now();
-        this.completed = false; // By default, a new task is not completed
     }
 
-    // Getter and Setter for id
+    public Task(String title, String description, boolean completed, LocalDate dueDate) {
+        this.title = title;
+        this.description = description;
+        this.completed = completed;
+        this.dueDate = dueDate;
+    }
+
     public Long getId() {
         return id;
     }
@@ -59,7 +54,6 @@ public class Task {
         this.id = id;
     }
 
-    // Getter and Setter for title
     public String getTitle() {
         return title;
     }
@@ -68,7 +62,6 @@ public class Task {
         this.title = title;
     }
 
-    // Getter and Setter for description
     public String getDescription() {
         return description;
     }
@@ -77,16 +70,14 @@ public class Task {
         this.description = description;
     }
 
-    // Getter and Setter for priority
-    public String getPriority() {
-        return priority;
+    public boolean isCompleted() {
+        return completed;
     }
 
-    public void setPriority(String priority) {
-        this.priority = priority;
+    public void setCompleted(boolean completed) {
+        this.completed = completed;
     }
 
-    // Getter and Setter for dueDate
     public LocalDate getDueDate() {
         return dueDate;
     }
@@ -95,62 +86,15 @@ public class Task {
         this.dueDate = dueDate;
     }
 
-    // Getter and Setter for type
-    public String getType() {
-        return type;
+    @Override
+    public String toString() {
+        return "Task{" +
+                "id=" + id +
+                ", title='" + title + '\'' +
+                ", description='" + description + '\'' +
+                ", completed=" + completed +
+                ", dueDate=" + dueDate +
+                '}';
     }
-
-    public void setType(String type) {
-        this.type = type;
-    }
-
-    // Getter and Setter for dateAdded
-    public LocalDate getDateAdded() {
-        return dateAdded;
-    }
-
-    public void setDateAdded(LocalDate dateAdded) {
-        this.dateAdded = dateAdded;
-    }
-
-    // Getter and Setter for completed
-    public boolean isCompleted() {
-        return completed;
-    }
-
-    public void setCompleted(boolean completed) {
-        this.completed = completed;
-        // Set the completionDate when marking the task as completed
-        if (completed && this.completionDate == null) {
-            this.completionDate = LocalDate.now();
-        } else if (!completed) {
-            this.completionDate = null;
-        }
-    }
-
-    // Getter and Setter for completionDate
-    public LocalDate getCompletionDate() {
-        return completionDate;
-    }
-
-    public void setCompletionDate(LocalDate completionDate) {
-        this.completionDate = completionDate;
-    }
-
-    // Getter and Setter for user
-    public User getUser() {
-        return user;
-    }
-
-    public void setUser(User user) {
-        this.user = user;
-    }
-
-    // Utility method to handle truncation of description to display in dashboard
-    public String getShortDescription() {
-        return description != null && description.length() > 10
-                ? description.substring(0, 10) + "..."
-                : description;
-    }
-
 }
+
